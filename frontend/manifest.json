@@ -1,0 +1,30 @@
+{
+  "name": "Todo App",
+  "appid": "",
+  "description": "语音待办清单",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "permission": {
+      "scope.record": {
+        "prompt": "语音待办需要使用麦克风来录制您的语音"
+      }
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "h5": {
+    "usingComponents": true
+  },
+  "vueVersion": "3"
+}

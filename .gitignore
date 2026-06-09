@@ -1,0 +1,39 @@
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Environment
+.env
+venv/
+.venv/
+
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE
+.idea/
+
+# HBuilderX
+.hbuilderx/
+
+# Node
+node_modules/
+
+# Root MCP/playwright tooling
+/package.json
+/package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+.mcp.json
+
+.vscode/
+
+.claude/
+.playwright-mcp/
+docs/
+product/

@@ -1,0 +1,64 @@
+// ============================================
+//  Design Tokens — Warm Studio
+//  A warm, organic minimalism with terracotta
+//  accents and refined typography.
+// ============================================
+
+// Background
+$bg-page: #F8F6F3;
+$bg-card: #FFFFFF;
+$bg-input: #F3F0EC;
+$bg-overlay: rgba(45, 42, 38, 0.45);
+
+// Brand
+$primary: #C0544A;
+$primary-light: #F8EDEB;
+$primary-dark: #A0453C;
+$primary-gradient: linear-gradient(135deg, #C0544A, #D4705C);
+
+// Text
+$text-primary: #2D2A26;
+$text-secondary: #978E84;
+$text-tertiary: #C4BCB2;
+$text-inverse: #FFFFFF;
+
+// Borders
+$border: #EFE9E3;
+$border-light: #F5F1EC;
+
+// Semantic
+$success: #6A8F6A;
+$success-light: #EFF5EF;
+$warning: #C4905C;
+$warning-light: #F6F0E8;
+$danger: #C0544A;
+$danger-light: #F8EDEB;
+
+// Shadows (warm-toned using dark brown instead of black)
+$shadow-sm: 0 2rpx 8rpx rgba(45, 42, 38, 0.05);
+$shadow-md: 0 4rpx 16rpx rgba(45, 42, 38, 0.07);
+$shadow-lg: 0 8rpx 32rpx rgba(45, 42, 38, 0.09);
+
+// Radius
+$radius-sm: 8rpx;
+$radius-md: 14rpx;
+$radius-lg: 20rpx;
+$radius-xl: 28rpx;
+$radius-full: 50%;
+
+// Typography
+$font-cn: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+$font-en: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+// Spacing
+$spacing-xs: 6rpx;
+$spacing-sm: 10rpx;
+$spacing-md: 16rpx;
+$spacing-lg: 24rpx;
+$spacing-xl: 32rpx;
+$spacing-2xl: 48rpx;
+
+// Transitions
+$transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
