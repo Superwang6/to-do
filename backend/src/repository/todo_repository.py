@@ -104,25 +104,22 @@ class TodoRepository:
         return query.all()
 
     def count_completed(self) -> int:
-        """Count completed template todos."""
-        return (
-            self._base_query()
-            .filter(
-                Todo.recurring_template_id.is_(None),
-                Todo.status == "completed",
-            )
-            .count()
-        )
+        """Count all completed todos.
+
+        Includes:
+        - Completed once todos (templates)
+        - Completed recurring history instances
+        """
+        return self._base_query().filter(Todo.status == "completed").count()
 
     def get_completed(self, skip: int = 0, limit: int = 50) -> tuple[list[Todo], int]:
-        """Return completed todos with pagination."""
-        query = (
-            self._base_query()
-            .filter(
-                Todo.recurring_template_id.is_(None),
-                Todo.status == "completed",
-            )
-        )
+        """Return completed todos with pagination.
+
+        Includes:
+        - Completed once todos (templates)
+        - Completed recurring history instances (linked to templates)
+        """
+        query = self._base_query().filter(Todo.status == "completed")
         total = query.count()
         items = (
             query

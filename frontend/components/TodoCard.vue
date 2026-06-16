@@ -15,7 +15,7 @@
         <view class="card-sub">
           <text v-if="showRecurrence" class="sub-recurrence">{{ formatRecurrence(todo.recurrence_rule) }}</text>
           <text v-if="showRecurrence && todo.type === 'recurring'" class="sub-dot">·</text>
-          <text v-if="showRecurrence && todo.type === 'recurring'" class="sub-next">今天</text>
+          <text v-if="showRecurrence && todo.type === 'recurring'" class="sub-next">{{ formatNextDue(todo.due_date) }}</text>
           <text v-else-if="showDueDate" class="sub-date">截止 {{ formatDate(todo.due_date) }}</text>
           <text v-if="showCompletedDate" class="sub-completed">完成于 {{ formatDate(todo.updated_at) }}</text>
           <text v-if="todo.priority === 'high'" class="sub-important">!! 重要</text>
@@ -30,6 +30,43 @@
 
 <script>
 import { formatDate, formatRecurrence } from '@/utils/todoFormatters'
+
+/**
+ * 格式化周期事项的下次截止日期
+ * @param {string} iso - ISO 格式日期
+ * @returns {string} 格式化后的下次截止描述
+ */
+function formatNextDue(iso) {
+  if (!iso) return ''
+
+  const match = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return ''
+
+  const dueYear = parseInt(match[1], 10)
+  const dueMonth = parseInt(match[2], 10)
+  const dueDay = parseInt(match[3], 10)
+
+  const today = new Date()
+  const todayYear = today.getFullYear()
+  const todayMonth = today.getMonth() + 1
+  const todayDay = today.getDate()
+
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const tomorrowYear = tomorrow.getFullYear()
+  const tomorrowMonth = tomorrow.getMonth() + 1
+  const tomorrowDay = tomorrow.getDate()
+
+  if (dueYear === todayYear && dueMonth === todayMonth && dueDay === todayDay) {
+    return '今天'
+  }
+  if (dueYear === tomorrowYear && dueMonth === tomorrowMonth && dueDay === tomorrowDay) {
+    return '明天'
+  }
+
+  // 显示日期
+  return `${dueMonth}/${dueDay}`
+}
 
 export default {
   name: 'TodoCard',
@@ -77,6 +114,7 @@ export default {
   methods: {
     formatDate,
     formatRecurrence,
+    formatNextDue,
     onToggle() {
       this.$emit('toggle', this.todo)
     },

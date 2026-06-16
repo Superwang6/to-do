@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from fastapi import HTTPException
@@ -24,11 +24,12 @@ def _sort_key(todo: Todo):
 
 
 def _is_today_or_past(d: datetime) -> bool:
+    """Check if a datetime is today or past, using UTC time for consistency."""
     if d is None:
         return False
-    today = date.today()
+    today_utc = datetime.now(timezone.utc).date()
     due_date = d.date() if isinstance(d, datetime) else d
-    return due_date <= today
+    return due_date <= today_utc
 
 
 class TodoService:
@@ -126,10 +127,18 @@ class TodoService:
             raise HTTPException(400, "Todo is already completed")
 
         # 1. Create completed history instance
+        # 历史实例的截止日期记录为今天（实际完成的日期）
+        # 而不是原模板的过期截止日期
+        today = datetime.now(timezone.utc).date()
+        completed_due_date = (
+            datetime.combine(today, todo.due_date.time())
+            if todo.due_date
+            else None
+        )
         history = Todo(
             title=todo.title,
             description=todo.description,
-            due_date=todo.due_date,
+            due_date=completed_due_date,
             priority=todo.priority,
             status="completed",
             type="recurring",
@@ -139,7 +148,19 @@ class TodoService:
         self.repository.create(history)
 
         # 2. Advance template due_date
-        next_due = calculate_next_due_date(todo.due_date, todo.recurrence_rule)
+        # 从今天开始计算下一个截止日期，而不是从原截止日期开始
+        # 避免过期多日的事项完成后仍停留在今天分类
+        current_due_date = todo.due_date.date()
+
+        if current_due_date < today:
+            # 截止日期已过期，从今天开始计算下一次
+            next_due = calculate_next_due_date(
+                datetime.combine(today, todo.due_date.time()),
+                todo.recurrence_rule
+            )
+        else:
+            # 截止日期是今天或未来，正常顺延
+            next_due = calculate_next_due_date(todo.due_date, todo.recurrence_rule)
         self.repository.update(todo.id, {"due_date": next_due})
 
         self.repository.db.refresh(todo)
