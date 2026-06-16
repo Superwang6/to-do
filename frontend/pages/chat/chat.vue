@@ -207,6 +207,7 @@ export default {
       editingTodo: null,
       _recordingStartY: 0,
       _cancelRecord: false,
+      _skipNextVoiceUpload: false,
     }
   },
   onLoad() {
@@ -217,6 +218,12 @@ export default {
       this.statusBarHeight = 44
     }
     this.loadMessages()
+  },
+  onHide() {
+    this.cleanupRecording({ stopRecorder: true, skipUpload: true })
+  },
+  onUnload() {
+    this.cleanupRecording({ stopRecorder: true, skipUpload: true })
   },
   methods: {
     // ── Navigation ──
@@ -345,18 +352,26 @@ export default {
       this.isRecording = true
       this.recordDuration = 0
       this.audioPath = null
+      this._skipNextVoiceUpload = false
       this._recordingTimer = setInterval(() => {
         this.recordDuration++
       }, 1000)
-      
+
       const recorderManager = uni.getRecorderManager()
 
       this._stopPromise = new Promise((resolve, reject) => {
         recorderManager.onStop((res) => {
+          this.cleanupRecording()
+          if (this._skipNextVoiceUpload) {
+            this._skipNextVoiceUpload = false
+            resolve(null)
+            return
+          }
           this.audioPath = res.tempFilePath
           resolve(res.tempFilePath)
         })
         recorderManager.onError((err) => {
+          this.cleanupRecording()
           reject(err)
         })
       })
@@ -372,8 +387,7 @@ export default {
     async stopRecord() {
       if (!this.isRecording) return
       const duration = this.recordDuration
-      this.isRecording = false
-      clearInterval(this._recordingTimer)
+      this.cleanupRecording()
 
       const recorderManager = uni.getRecorderManager()
       recorderManager.stop()
@@ -412,10 +426,29 @@ export default {
     },
 
     cancelRecord() {
+      this.cleanupRecording({ stopRecorder: true, skipUpload: true })
+    },
+
+    cleanupRecording(options = {}) {
+      const { stopRecorder = false, skipUpload = false } = options
+      if (skipUpload) {
+        this._skipNextVoiceUpload = true
+      }
+      if (this._recordingTimer) {
+        clearInterval(this._recordingTimer)
+        this._recordingTimer = null
+      }
+      if (this.recordTimer) {
+        clearInterval(this.recordTimer)
+        this.recordTimer = null
+      }
+      const shouldStop = stopRecorder && this.isRecording
       this.isRecording = false
-      clearInterval(this._recordingTimer)
-      const recorderManager = uni.getRecorderManager()
-      try { recorderManager.stop() } catch (_) {}
+      this._cancelRecord = false
+      if (shouldStop) {
+        const recorderManager = uni.getRecorderManager()
+        try { recorderManager.stop() } catch (_) {}
+      }
     },
 
     // ── Message Helpers ──

@@ -28,9 +28,7 @@ app.include_router(chat_router.router)
 def init_db():
     from src.database import engine
     from src.model import Base
-    from src.config import settings
     try:
-        print(settings)
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created/verified")
     except Exception as e:

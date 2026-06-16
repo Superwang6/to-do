@@ -137,6 +137,12 @@ export default {
       this.statusBarHeight = 44
     }
   },
+  onHide() {
+    this.cleanupRecording({ stopRecorder: true, skipUpload: true })
+  },
+  onUnload() {
+    this.cleanupRecording({ stopRecorder: true, skipUpload: true })
+  },
   methods: {
     goBack() {
       uni.navigateBack()
@@ -155,6 +161,7 @@ export default {
       this.isRecording = true
       this.duration = 0
       this.hasAudio = false
+      this._skipNextUpload = false
 
       // Start timing
       this._timer = setInterval(() => {
@@ -166,15 +173,19 @@ export default {
       this.recorder = recorderManager
 
       recorderManager.onStop((res) => {
+        this.cleanupRecording()
+        if (this._skipNextUpload) {
+          this._skipNextUpload = false
+          return
+        }
         this._audioPath = res.tempFilePath
         this.hasAudio = true
         this.uploadAndTranscribe()
       })
 
       recorderManager.onError((err) => {
+        this.cleanupRecording()
         uni.showToast({ title: '录音失败', icon: 'none' })
-        this.isRecording = false
-        clearInterval(this._timer)
       })
 
       recorderManager.start({
@@ -187,11 +198,26 @@ export default {
 
     stopRecord() {
       if (!this.isRecording) return
-      this.isRecording = false
-      clearInterval(this._timer)
+      this.cleanupRecording()
 
       if (this.recorder) {
         this.recorder.stop()
+      }
+    },
+
+    cleanupRecording(options = {}) {
+      const { stopRecorder = false, skipUpload = false } = options
+      if (skipUpload) {
+        this._skipNextUpload = true
+      }
+      if (this._timer) {
+        clearInterval(this._timer)
+        this._timer = null
+      }
+      const shouldStop = stopRecorder && this.isRecording && this.recorder
+      this.isRecording = false
+      if (shouldStop) {
+        try { this.recorder.stop() } catch (_) {}
       }
     },
 

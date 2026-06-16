@@ -26,6 +26,8 @@
     <view class="content">
       <LoadingState v-if="loading" />
 
+      <ErrorState v-else-if="error" @retry="onSearch" />
+
       <view v-else-if="keyword && results.length === 0" class="empty-state">
         <text class="empty-text">没有找到 "{{ keyword }}"</text>
         <text class="empty-hint">试试换个关键词吧</text>
@@ -37,6 +39,8 @@
         scroll-y
         enhanced
         show-scrollbar="false"
+        lower-threshold="80"
+        @scrolltolower="loadMore"
       >
         <view class="list-inner">
           <TodoCard
@@ -88,6 +92,8 @@ export default {
       hasMore: true,
       currentPage: 1,
       pageSize: 50,
+      error: false,
+      errorMessage: '',
       statusBarHeight: 44,
       showEditSheet: false,
       editingTodo: null,
@@ -120,12 +126,16 @@ export default {
       if (!this.keyword.trim()) {
         this.results = []
         this.hasMore = false
+        this.error = false
+        this.errorMessage = ''
       }
     },
     onClear() {
       this.keyword = ''
       this.results = []
       this.hasMore = false
+      this.error = false
+      this.errorMessage = ''
     },
     onCancel() {
       uni.navigateBack()
@@ -137,6 +147,8 @@ export default {
         return
       }
       this.loading = true
+      this.error = false
+      this.errorMessage = ''
       this.currentPage = 1
       this.results = []
       try {
@@ -145,7 +157,9 @@ export default {
         this.results = Array.isArray(data) ? data : []
         this.hasMore = this.results.length >= this.pageSize
       } catch (e) {
-        uni.showToast({ title: e.message || '搜索失败', icon: 'none' })
+        this.error = true
+        this.errorMessage = e.message || '搜索失败'
+        uni.showToast({ title: this.errorMessage, icon: 'none' })
       } finally {
         this.loading = false
       }

@@ -1,34 +1,4 @@
-import { API_BASE_URL } from '@/config/index'
-import { getToken } from '@/utils/auth'
-
-function request(path, options = {}) {
-  const token = getToken()
-  const header = { ...(options.header || {}) }
-  if (token) {
-    header['Authorization'] = `Bearer ${token}`
-  }
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: `${API_BASE_URL}${path}`,
-      ...options,
-      header,
-      success: (res) => {
-        if (res.statusCode === 401) {
-          uni.removeStorageSync('auth_token')
-          uni.removeStorageSync('auth_user')
-          uni.reLaunch({ url: '/pages/login/login' })
-          return
-        }
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(res.data.data)
-        } else {
-          reject(new Error(res.data?.detail || res.data?.message || 'Request failed'))
-        }
-      },
-      fail: reject,
-    })
-  })
-}
+import { request, uploadFile } from './request'
 
 export function fetchTodos(priority = null) {
   return request('/api/todos/list', {
@@ -85,30 +55,7 @@ export function deleteTodo(id) {
 }
 
 export function uploadAudio(filePath) {
-  const token = getToken()
-  return new Promise((resolve, reject) => {
-    uni.uploadFile({
-      url: `${API_BASE_URL}/api/voice/upload`,
-      filePath,
-      name: 'file',
-      header: token ? { Authorization: `Bearer ${token}` } : {},
-      success: (res) => {
-        if (res.statusCode === 401) {
-          uni.removeStorageSync('auth_token')
-          uni.removeStorageSync('auth_user')
-          uni.reLaunch({ url: '/pages/login/login' })
-          return
-        }
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          const body = JSON.parse(res.data)
-          resolve(body.data)
-        } else {
-          reject(new Error(res.data?.detail || 'Upload failed'))
-        }
-      },
-      fail: reject,
-    })
-  })
+  return uploadFile('/api/voice/upload', filePath)
 }
 
 export function sendChatText(text, extra = {}) {
@@ -120,41 +67,7 @@ export function sendChatText(text, extra = {}) {
 }
 
 export function sendChatVoice(filePath) {
-  const token = getToken()
-  return new Promise((resolve, reject) => {
-    uni.uploadFile({
-      url: `${API_BASE_URL}/api/chat/audio`,
-      filePath,
-      name: 'file',
-      header: token ? { Authorization: `Bearer ${token}` } : {},
-      success: (res) => {
-        if (res.statusCode === 401) {
-          uni.removeStorageSync('auth_token')
-          uni.removeStorageSync('auth_user')
-          uni.reLaunch({ url: '/pages/login/login' })
-          return
-        }
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            const body = JSON.parse(res.data)
-            resolve(body.data)
-          } catch (e) {
-            reject(new Error('Invalid response format'))
-          }
-        } else {
-          let detail = 'Upload failed'
-          try {
-            const parsed = JSON.parse(res.data)
-            detail = parsed.detail || parsed.message || detail
-          } catch (_) {}
-          reject(new Error(detail))
-        }
-      },
-      fail: (err) => {
-        reject(err)
-      },
-    })
-  })
+  return uploadFile('/api/chat/audio', filePath)
 }
 
 export function fetchChatMessages(page = 1, pageSize = 200) {

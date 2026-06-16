@@ -110,18 +110,14 @@ export default {
 
       try {
         uni.showLoading({ title: '保存中...' })
-        const response = await changePassword({
+        await changePassword({
           current_password: this.form.currentPassword,
           new_password: this.form.newPassword,
         })
-        if (response.success) {
-          uni.showToast({ title: '密码修改成功', icon: 'success' })
-          setTimeout(() => {
-            uni.navigateBack()
-          }, 1500)
-        } else {
-          uni.showToast({ title: response.message || '修改失败', icon: 'none' })
-        }
+        uni.showToast({ title: '密码修改成功', icon: 'success' })
+        setTimeout(() => {
+          uni.navigateBack()
+        }, 1500)
       } catch (error) {
         console.error('Failed to change password:', error)
         uni.showToast({ title: '修改失败', icon: 'none' })

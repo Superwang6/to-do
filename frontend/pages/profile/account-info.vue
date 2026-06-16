@@ -127,13 +127,7 @@ export default {
     },
     async fetchUserProfile() {
       try {
-        // 这里可以调用API获取最新的用户信息
-        // const response = await getUserProfile()
-        // if (response.success) {
-        //   this.user = response.data
-        //   this.form = { ...response.data }
-        //   this.originalForm = { ...response.data }
-        // }
+        // 这里可以调用 API 获取最新的用户信息，并按业务 data 更新本地状态
       } catch (error) {
         console.error('Failed to fetch user profile:', error)
       }
@@ -143,20 +137,19 @@ export default {
 
       try {
         uni.showLoading({ title: '保存中...' })
-        const response = await updateProfile(this.form)
-        if (response.success) {
-          // 更新本地存储的用户信息
-          const updatedUser = { ...this.user, ...this.form }
-          this.user = updatedUser
-          this.originalForm = { ...this.form }
-          setUser(updatedUser)
-          uni.showToast({ title: '保存成功', icon: 'success' })
-        } else {
-          uni.showToast({ title: response.message || '保存失败', icon: 'none' })
+        const updatedUserData = await updateProfile(this.form)
+        const updatedUser = { ...this.user, ...this.form, ...(updatedUserData || {}) }
+        this.user = updatedUser
+        this.form = {
+          username: updatedUser.username || '',
+          email: updatedUser.email || '',
         }
+        this.originalForm = { ...this.form }
+        setUser(updatedUser)
+        uni.showToast({ title: '保存成功', icon: 'success' })
       } catch (error) {
         console.error('Failed to update profile:', error)
-        uni.showToast({ title: '保存失败', icon: 'none' })
+        uni.showToast({ title: error.message || '保存失败', icon: 'none' })
       } finally {
         uni.hideLoading()
       }
@@ -173,16 +166,11 @@ export default {
           try {
             uni.showLoading({ title: '上传中...' })
             const tempFilePaths = res.tempFilePaths
-            const response = await uploadAvatar(tempFilePaths[0])
-            if (response.success) {
-              // 更新本地存储的用户信息
-              const updatedUser = { ...this.user, avatar: response.data.avatar }
-              this.user = updatedUser
-              setUser(updatedUser)
-              uni.showToast({ title: '头像更新成功', icon: 'success' })
-            } else {
-              uni.showToast({ title: response.message || '上传失败', icon: 'none' })
-            }
+            const data = await uploadAvatar(tempFilePaths[0])
+            const updatedUser = { ...this.user, avatar: data?.avatar || '' }
+            this.user = updatedUser
+            setUser(updatedUser)
+            uni.showToast({ title: '头像更新成功', icon: 'success' })
           } catch (error) {
             console.error('Failed to upload avatar:', error)
             uni.showToast({ title: '上传失败', icon: 'none' })
